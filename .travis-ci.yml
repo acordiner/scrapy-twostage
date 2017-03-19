@@ -1,0 +1,11 @@
+language: python
+python:
+- '2.7'
+- '3.5'
+- '3.6'
+script: python setup.py test
+deploy:
+  provider: pypi
+  user: acordiner
+  password:
+    secure: "KpICMCXlwRWb4oTLdqmy+j8JyyOxRwn+3tErXOmVkFspHhGcp0Myzp2SOm9hYoQga8jzqAkq9XnukyU3quVWcm9f/tsa0luuszjto1SiQpxYoAF02pgjxGLQmANqCSw4GRJzybA8A+kWUucit281LI8SA9IF5QzUkrhS2kU5mhBU0hOgHQzmD9YfWnr4Xnre5M9RH2LAhBxQjSF/xu9UhSDM8JzQ3S4bsMD2LBKl4CeqfZ9oUG61OLXG9wUdQD+HsJxnFIBtb1Nmc+dWq4jCp4h0oKDr3PE8Fyv8HD+cf6WyA0AzyGg3OOasB5ertzfFaNUiZyrILqS4nGhPI9D+UwjO1uIp5oo+jpSHIYhc9jHEyVIdDIvvQUW4uLZSdqehmsiCslsRBfrtlT1jRRSFt+WTmsOBjUlTWKh3jqWc9Xo2x//eivedxaRdkh2uAcXvxf5CxE3lQmfbmn/lxqESvif9DmTTVu//PGGYoWA4Xwl+mv6FNNzbdL+gG0H7UGd2t4Ei886+Fw9s/i2TOH0AVyXaDP/fA9XK7It2G3mwxW5bgsy7Ot6fFssybCUVvBSSMiWEmFMoBxh0hortPMnOls9xy99Zr0bPKtkFndaPEzuT1VXU5FXJpH42qoVQEW4Y+0LwGzGxUV/k9vXTdncOtP/1TryEM8/ZkroPU0Wo2m4="
