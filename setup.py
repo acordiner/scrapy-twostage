@@ -14,13 +14,13 @@ def get_requirements(filename):
 
 setup(
     name='scrapy-twostage',
-    version='0.0.2',
+    version='0.0.5',
     packages=find_packages(),
     url='http://github.com/acordiner/scrapy-twostage',
     license='GPL v2',
     author='Alister Cordiner',
     author_email='alister@cordiner.net',
-    description='Use S3 as a cache backend in Scrapy projects.',
+    description='Two stage Scrapy spider: download and extract',
     long_description=open(os.path.join(PROJECT_DIR, 'README.rst')).read(),
     install_requires=get_requirements(os.path.join(PROJECT_DIR, 'requirements.txt')),
     test_suite='tests',
