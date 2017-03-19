@@ -1,13 +1,13 @@
 import pickle
 import re
-from StringIO import StringIO
+from io import BytesIO
 from gzip import GzipFile
-from urlparse import urlparse, urlunparse
 
 import boto3
 import scrapy
 from scrapy.http import TextResponse
 from scrapy.http.request import Request
+from six.moves.urllib.parse import urlparse, urlunparse
 
 
 class S3Spider(scrapy.Spider):
@@ -63,7 +63,7 @@ class PickledResponseSpiderMixin(object):
             # TODO: raise an exception?
             return
         self.logger.info("Unpickling pickled response: %s", response.url)
-        fp = StringIO(response.body)
+        fp = BytesIO(response.body)
         if is_gzipped:
             fp = GzipFile(fileobj=fp)
         while True:

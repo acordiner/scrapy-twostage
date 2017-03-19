@@ -1,5 +1,5 @@
 import unittest
-from io import StringIO
+from io import BytesIO
 
 import scrapy
 from scrapy.http import Response
@@ -48,7 +48,7 @@ class PickleItemTestCase(unittest.TestCase):
             text='bar',
         )
 
-        fp = StringIO()
+        fp = BytesIO()
 
         exporter = GzipPickleItemExporter(fp)
         exporter.export_item(page1)
