@@ -14,7 +14,7 @@ def get_requirements(filename):
 
 setup(
     name='scrapy-twostage',
-    version='0.0.1',
+    version='0.0.2',
     packages=find_packages(),
     url='http://github.com/acordiner/scrapy-twostage',
     license='GPL v2',
