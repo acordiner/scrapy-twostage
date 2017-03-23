@@ -92,6 +92,43 @@ documentation <https://doc.scrapy.org/en/1.3/intro/tutorial.html>`_::
             if next_page_url is not None:
                 yield scrapy.Request(response.urljoin(next_page_url))
 
+It only scrapes the books, so let's extend it so that it scrapes the
+author bio pages as well::
+
+    import scrapy
+
+
+    class QuotesSpider(scrapy.Spider):
+        name = 'quotes'
+        start_urls = [
+            'http://quotes.toscrape.com/',
+        ]
+
+        def parse(self, response):
+            for quote in response.css("div.quote"):
+                yield {
+                    'text': quote.css("span.text::text").extract_first(),
+                    'author': quote.css("small.author::text").extract_first(),
+                    'tags': quote.css("div.tags > a.tag::text").extract()
+                }
+                author_url = quote.css("a[href*='/author/']::attr(href)").extract_first()
+                yield scrapy.Request(
+                    response.urljoin(author_url),
+                    callback=self.parse_author,
+                )
+
+            next_page_url = response.xpath('//li[@class="next"]/a/@href').extract_first()
+            if next_page_url is not None:
+                yield scrapy.Request(response.urljoin(next_page_url))
+
+        def parse_author(self, response):
+            author = response.css("div.author-details")
+            yield {
+                'name': author.css('h3.author-title::text').extract_first().strip(),
+                'birth_date': author.css("span.author-born-date::text").extract_first(),
+            }
+
+
 We should break this up into two Scrapy spiders. Let's call the first one
 ``QuotesDownloaderSpider`` and the second one ``QuotesExtractorSpider``.
 
@@ -110,6 +147,7 @@ Here is how we might create a downloader spider that corresponds
 to the `QuotesSpider`::
 
     import scrapy
+    from scrapy_twostage.stage1.items import DownloadedPage
 
 
     class QuotesDownloaderSpider(scrapy.Spider):
@@ -118,11 +156,18 @@ to the `QuotesSpider`::
 
         def parse(self, response):
             yield DownloadedPage.from_response(response)
+            for author_url in response.css("a[href*='/author/']::attr(href)").extract():
+                yield scrapy.Request(
+                    response.urljoin(author_url),
+                    callback=self.parse_author,
+                )
 
             next_page_url = response.css("li.next > a::attr(href)").extract_first()
             if next_page_url is not None:
                 yield scrapy.Request(response.urljoin(next_page_url))
 
+        def parse_author(self, response):
+            yield DownloadedPage.from_response(response)
 
 You should then specify how and where to store the downloaded pages in
 your settings. For example::
@@ -141,27 +186,26 @@ downloaded in stage 1.
 Here is how we might create an extractor spider that corresponds
 to the `QuotesSpider`::
 
-    import scrapy
+    from scrapy_twostage.stage2.spiders import PickledResponseSpiderMixin, DirectorySpider
 
 
-    class QuotesExtractorSpider(scrapy.Spider):
-        name = "quotes"
-        start_urls = ['http://quotes.toscrape.com/']
+    class QuotesExtractorSpider(PickledResponseSpiderMixin, DirectorySpider):
+        name = "books"
+        dirname = '/tmp/booksspider'
 
-        def __init__(self):
-            super(QuotesExtractorSpider, self).__init__()
-            self.response_url_router = (
-                (re.compile(r"prospectstampsandcoins.com.au/banknotes/page-"), None),
-                (re.compile(r"prospectstampsandcoins.com.au/banknotes/"), self.banknote),
-                (re.compile(r"prospectstampsandcoins.com.au/banknote-accessories-and-catalogues/"), None),
-                (re.compile(r"prospectstampsandcoins.com.au/royal-australian-mint/"), None),
-                (re.compile(r"prospectstampsandcoins.com.au/coin-accessories-and-catalogues/"), None),
-                (re.compile(r"prospectstampsandcoins.com.au/anda-coin-fair-releases-en/"), None),
-            )
+        response_rules = [
+            (r"^http://quotes.toscrape.com/author/.*/$", "parse_author_page"),
+            (r"^http://quotes.toscrape.com/(page/.*/)?$", "parse_book_page"),
+        ]
 
+        def parse_author_page(self, response):
+            author = response.css("div.author-details")
+            yield {
+                'name': author.css('h3.author-title::text').extract_first().strip(),
+                'birth_date': author.css("span.author-born-date::text").extract_first(),
+            }
 
-
-        def parse(self, response):
+        def parse_book_page(self, response):
             for quote in response.css("div.quote"):
                 yield {
                     'text': quote.css("span.text::text").extract_first(),
